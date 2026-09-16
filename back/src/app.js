@@ -11,8 +11,9 @@ app.use(cors());
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../../front')));
 // Serve uploaded images
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(process.env.UPLOAD_DIR || path.join(__dirname, '../uploads')));
 
 // Endpoints REST API
 app.get('/api/recipes', (req, res) => recipeController.getAll(req, res));

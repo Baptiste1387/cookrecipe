@@ -18,7 +18,7 @@ class UploadController {
       try {
         const ext = req.file.mimetype === 'image/png' ? 'png' : req.file.mimetype === 'image/webp' ? 'webp' : 'jpg';
         const filename = `${Date.now()}-${Math.round(Math.random()*1e6)}.${ext}`;
-        const uploadDir = path.join(__dirname, '..', '..', 'uploads');
+        const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', '..', 'uploads');
         fs.mkdirSync(uploadDir, { recursive: true });
         const outPath = path.join(uploadDir, filename);
 

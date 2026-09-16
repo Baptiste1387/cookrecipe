@@ -57,3 +57,7 @@ class App {
 }
 
 document.addEventListener('DOMContentLoaded', () => new App().init());
+
+if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}

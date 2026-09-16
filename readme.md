@@ -39,9 +39,23 @@ npm start
 
 Le script `start` exécute `node server.js` (voir `back/package.json`).
 
+Le backend sert également le frontend. Pour tester l'application depuis le PC ou un appareil du réseau local, ouvrir `http://localhost:8000` ou `http://<IP_DU_PC>:8000`.
+
+Déploiement avec Coolify
+
+1. Créer une ressource depuis le dépôt Git et choisir `Dockerfile`.
+2. Laisser le répertoire racine du dépôt comme contexte de build : le fichier `Dockerfile` copie `back/` et `front/`.
+3. Définir le port exposé sur `8000`.
+4. Ajouter ces volumes persistants : `/data` et `/uploads`.
+5. Déployer. Coolify fournira ensuite l'URL HTTPS de l'application.
+
+La base SQLite est stockée dans `/data/recipes.db` et les images dans `/uploads`. Ces volumes sont indispensables pour conserver les données lors d'un nouveau déploiement.
+
+L'application est également une PWA : depuis le navigateur du smartphone, utiliser le menu « Ajouter à l'écran d'accueil » ou « Installer l'application ». L'installation PWA nécessite généralement HTTPS; en HTTP sur le réseau local, l'application reste utilisable mais le navigateur peut ne pas proposer l'installation.
+
 Frontend
 
-Le frontend est statique : ouvrir `front/index.html` dans un navigateur ou servir le dossier avec un serveur HTTP simple :
+Le frontend peut être servi par le backend. Pour le lancer séparément avec un serveur HTTP simple :
 
 ```bash
 cd front
@@ -49,6 +63,8 @@ npx http-server .
 # ou
 python -m http.server 8080
 ```
+
+Pour tester depuis un autre appareil du réseau local, relever l'adresse IP du PC et ouvrir `http://<IP_DU_PC>:8080` sur l'appareil. Le frontend utilisera automatiquement `http://<IP_DU_PC>:8000` pour l'API. Une autre adresse peut être forcée avec `?api=http://<IP_DU_BACKEND>:8000`.
 
 Base de données
 

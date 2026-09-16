@@ -1,4 +1,5 @@
 import { parseQuantityInput } from './utils.js';
+import { API_BASE_URL } from './config.js';
 
 class Store extends EventTarget {
     constructor() {
@@ -12,7 +13,7 @@ class Store extends EventTarget {
     // Load recipes list from backend
     async loadRecipes() {
         try {
-            const res = await fetch('http://localhost:8000/api/recipes');
+            const res = await fetch(`${API_BASE_URL}/api/recipes`);
             if (!res.ok) throw new Error('Erreur chargement recettes');
             const data = await res.json();
             console.log('store.loadRecipes: received', data.length, 'recipes');
@@ -30,7 +31,7 @@ class Store extends EventTarget {
     // Fetch single full recipe (with ingredients & steps)
     async fetchRecipeById(id) {
         try {
-            const res = await fetch(`http://localhost:8000/api/recipes/${id}`);
+            const res = await fetch(`${API_BASE_URL}/api/recipes/${id}`);
             if (!res.ok) return null;
             const recipe = await res.json();
             // update or insert
@@ -50,7 +51,7 @@ class Store extends EventTarget {
         try {
             const fd = new FormData();
             fd.append('image', file);
-            const res = await fetch('http://localhost:8000/api/uploads', { method: 'POST', body: fd });
+            const res = await fetch(`${API_BASE_URL}/api/uploads`, { method: 'POST', body: fd });
             if (!res.ok) throw new Error('Échec upload image');
             const body = await res.json();
             return body.image_path;
@@ -75,7 +76,7 @@ class Store extends EventTarget {
     async saveRecipe(payload, id = null) {
         try {
             if (id) {
-                const res = await fetch(`http://localhost:8000/api/recipes/${id}`, {
+                const res = await fetch(`${API_BASE_URL}/api/recipes/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -84,7 +85,7 @@ class Store extends EventTarget {
                 const recipe = await this.fetchRecipeById(id);
                 return recipe ? recipe.id : parseInt(id, 10);
             } else {
-                const res = await fetch('http://localhost:8000/api/recipes', {
+                const res = await fetch(`${API_BASE_URL}/api/recipes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -104,7 +105,7 @@ class Store extends EventTarget {
 
     async deleteRecipe(id) {
         try {
-            const res = await fetch(`http://localhost:8000/api/recipes/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}/api/recipes/${id}`, { method: 'DELETE' });
             if (!res.ok && res.status !== 204) throw new Error('Échec suppression');
             this.recipes = this.recipes.filter(r => r.id !== parseInt(id, 10));
             this.notify('recipes-changed');

@@ -2,7 +2,7 @@ const Database = require('better-sqlite3');
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../recipes.db');
+const dbPath = process.env.DB_PATH || path.join(__dirname, '../recipes.db');
 const db = new Database(dbPath);
 
 // Activation des clés étrangères (CASCADE)
