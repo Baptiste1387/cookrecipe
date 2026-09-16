@@ -31,7 +31,9 @@ export class RecipeFormModal extends HTMLElement {
                     <form id="recipeForm" class="p-6 overflow-y-auto space-y-6 flex-1">
                         <div class="grid grid-cols-2 gap-4">
                             <div class="col-span-2"><label class="text-xs font-semibold">Titre *</label><input type="text" id="title" required value="${r.title || ''}" class="w-full border p-2 rounded text-sm"></div>
+                            <div class="col-span-2"><label class="text-xs font-semibold">Description</label><textarea id="description" rows="2" class="w-full border p-2 rounded text-sm">${r.description || ''}</textarea></div>
                             <div><label class="text-xs font-semibold">Catégorie</label><input type="text" id="category" value="${r.category || ''}" class="w-full border p-2 rounded text-sm"></div>
+                            <div><label class="text-xs font-semibold">Tags</label><input type="text" id="tags" value="${(r.tags || []).join(', ')}" placeholder="ex. rapide, végétarien" class="w-full border p-2 rounded text-sm"></div>
                             <div>
                                 <label class="text-xs font-semibold">Image URL</label>
                                 <input type="text" id="image_path" value="${r.image_path || ''}" class="w-full border p-2 rounded text-sm">
@@ -40,6 +42,9 @@ export class RecipeFormModal extends HTMLElement {
                                 <div id="imagePreview" class="mt-2"></div>
                             </div>
                             <div><label class="text-xs font-semibold">Portions de base *</label><input type="number" id="default_servings" required value="${r.default_servings || 4}" min="1" class="w-full border p-2 rounded text-sm"></div>
+                            <div><label class="text-xs font-semibold">Préparation (min)</label><input type="number" id="prep_time_min" min="0" value="${r.prep_time_min ?? ''}" class="w-full border p-2 rounded text-sm"></div>
+                            <div><label class="text-xs font-semibold">Cuisson (min)</label><input type="number" id="cook_time_min" min="0" value="${r.cook_time_min ?? ''}" class="w-full border p-2 rounded text-sm"></div>
+                            <div><label class="text-xs font-semibold">Repos (min)</label><input type="number" id="rest_time_min" min="0" value="${r.rest_time_min ?? ''}" class="w-full border p-2 rounded text-sm"></div>
                         </div>
 
                         <div>
@@ -48,6 +53,14 @@ export class RecipeFormModal extends HTMLElement {
                                 <button type="button" id="addIngBtn" class="text-xs bg-slate-100 px-2 py-1 rounded">+ Ajouter</button>
                             </div>
                             <div id="ingRows" class="space-y-2"></div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase">Préparation</label>
+                                <button type="button" id="addStepBtn" class="text-xs bg-slate-100 px-2 py-1 rounded">+ Ajouter</button>
+                            </div>
+                            <div id="stepRows" class="space-y-2"></div>
                         </div>
                     </form>
 
@@ -62,6 +75,7 @@ export class RecipeFormModal extends HTMLElement {
         this.querySelector('#closeBtn').addEventListener('click', () => this.close());
         this.querySelector('#cancelBtn').addEventListener('click', () => this.close());
         this.querySelector('#addIngBtn').addEventListener('click', () => this.addIngredientRow());
+        this.querySelector('#addStepBtn').addEventListener('click', () => this.addStepRow());
         this.querySelector('#saveBtn').addEventListener('click', () => this.save());
 
         const fileInput = this.querySelector('#image_file');
@@ -72,6 +86,12 @@ export class RecipeFormModal extends HTMLElement {
             r.ingredients.forEach(i => this.addIngredientRow(i));
         } else {
             this.addIngredientRow();
+        }
+
+        if (r.steps && r.steps.length) {
+            r.steps.forEach(step => this.addStepRow(step));
+        } else {
+            this.addStepRow();
         }
     }
 
@@ -87,6 +107,18 @@ export class RecipeFormModal extends HTMLElement {
         `;
         row.querySelector('.del-btn').addEventListener('click', () => row.remove());
         this.querySelector('#ingRows').appendChild(row);
+    }
+
+    addStepRow(data = {}) {
+        const row = document.createElement('div');
+        row.className = 'step-row grid grid-cols-12 gap-2 items-center';
+        row.innerHTML = `
+            <input type="text" placeholder="Section" value="${data.section_name || ''}" class="step-sec col-span-3 border p-1 text-xs rounded">
+            <textarea placeholder="Instruction" rows="2" class="step-instruction col-span-8 border p-1 text-xs rounded">${data.instruction || ''}</textarea>
+            <button type="button" class="del-btn text-rose-500 col-span-1">x</button>
+        `;
+        row.querySelector('.del-btn').addEventListener('click', () => row.remove());
+        this.querySelector('#stepRows').appendChild(row);
     }
 
     onFileSelected(e) {
@@ -116,13 +148,24 @@ export class RecipeFormModal extends HTMLElement {
             }
         });
 
+        const steps = [...this.querySelectorAll('.step-row')].map((row, idx) => ({
+            section_name: row.querySelector('.step-sec').value.trim() || null,
+            step_number: idx + 1,
+            instruction: row.querySelector('.step-instruction').value.trim()
+        })).filter(step => step.instruction);
+
         const payload = {
             title: this.querySelector('#title').value.trim(),
+            description: this.querySelector('#description').value.trim() || null,
             category: this.querySelector('#category').value.trim() || null,
+            tags: this.querySelector('#tags').value.split(',').map(tag => tag.trim()).filter(Boolean),
             image_path: this.querySelector('#image_path').value.trim() || null,
             default_servings: parseInt(this.querySelector('#default_servings').value, 10),
+            prep_time_min: this.numberOrNull('#prep_time_min'),
+            cook_time_min: this.numberOrNull('#cook_time_min'),
+            rest_time_min: this.numberOrNull('#rest_time_min'),
             ingredients: ingredients,
-            steps: this.recipe ? this.recipe.steps : []
+            steps: steps
         };
 
         const fileInput = this.querySelector('#image_file');
@@ -143,6 +186,11 @@ export class RecipeFormModal extends HTMLElement {
         };
 
         doSave();
+    }
+
+    numberOrNull(selector) {
+        const value = this.querySelector(selector).value;
+        return value === '' ? null : Number(value);
     }
 }
 customElements.define('recipe-form-modal', RecipeFormModal);

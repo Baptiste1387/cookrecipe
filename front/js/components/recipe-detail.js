@@ -1,5 +1,5 @@
 import { store } from '../store.js';
-import { calculateQuantity } from '../utils.js';
+import { calculateQuantity, resolveImageUrl } from '../utils.js';
 
 export class RecipeDetail extends HTMLElement {
     set recipeId(id) {
@@ -22,10 +22,11 @@ export class RecipeDetail extends HTMLElement {
 
     render() {
         const r = this.recipe;
+        const imageUrl = resolveImageUrl(r.image_path);
         this.innerHTML = `
             <article class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
                 <div class="relative h-64 md:h-80 w-full bg-slate-100">
-                    ${r.image_path ? `<img src="${r.image_path}" class="w-full h-full object-cover">` : ''}
+                    ${imageUrl ? `<img src="${imageUrl}" class="w-full h-full object-cover">` : ''}
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     <div class="absolute bottom-6 left-6 right-6 text-white">
                         <span class="px-3 py-1 bg-emerald-500/90 text-white text-xs font-semibold rounded-full uppercase mb-2 inline-block">${r.category || 'Général'}</span>

@@ -81,11 +81,8 @@ class Store extends EventTarget {
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) throw new Error('Échec mise à jour');
-                // update local
-                const index = this.recipes.findIndex(r => r.id === parseInt(id, 10));
-                if (index !== -1) this.recipes[index] = { ...this.recipes[index], ...payload };
-                this.notify('recipes-changed');
-                return parseInt(id, 10);
+                const recipe = await this.fetchRecipeById(id);
+                return recipe ? recipe.id : parseInt(id, 10);
             } else {
                 const res = await fetch('http://localhost:8000/api/recipes', {
                     method: 'POST',

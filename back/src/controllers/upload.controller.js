@@ -18,7 +18,9 @@ class UploadController {
       try {
         const ext = req.file.mimetype === 'image/png' ? 'png' : req.file.mimetype === 'image/webp' ? 'webp' : 'jpg';
         const filename = `${Date.now()}-${Math.round(Math.random()*1e6)}.${ext}`;
-        const outPath = path.join(__dirname, '..', '..', 'uploads', filename);
+        const uploadDir = path.join(__dirname, '..', '..', 'uploads');
+        fs.mkdirSync(uploadDir, { recursive: true });
+        const outPath = path.join(uploadDir, filename);
 
         // Resize to max width 1200 and optimize
         await sharp(req.file.buffer)

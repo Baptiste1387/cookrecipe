@@ -1,3 +1,10 @@
+const API_BASE_URL = 'http://localhost:8000';
+
+export function resolveImageUrl(imagePath) {
+    if (!imagePath) return null;
+    return new URL(imagePath, API_BASE_URL).href;
+}
+
 /**
  * RG-104 : Convertit une fraction (ex "1/2") ou une chaîne décimale en flottant.
  */

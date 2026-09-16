@@ -1,9 +1,18 @@
 import { store } from '../store.js';
 
 export class RecipeList extends HTMLElement {
+    constructor() {
+        super();
+        this.currentPage = 1;
+        this.pageSize = 9;
+    }
+
     connectedCallback() {
         this.render();
-        store.addEventListener('recipes-changed', () => this.updateGrid());
+        store.addEventListener('recipes-changed', () => {
+            this.updateCategories();
+            this.updateGrid();
+        });
         
         // Attendre que le DOM soit complètement inséré avant d'injecter la grille
         requestAnimationFrame(() => {
@@ -38,6 +47,7 @@ export class RecipeList extends HTMLElement {
                 </div>
 
                 <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <nav id="pagination" class="flex justify-center gap-2" aria-label="Pagination"></nav>
                 <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-200/80">
                     <i class="ph-bold ph-bowl-food text-5xl text-slate-300 mb-3"></i>
                     <h3 class="text-lg font-bold text-slate-700">Aucune recette trouvée</h3>
@@ -53,10 +63,16 @@ export class RecipeList extends HTMLElement {
         }
 
         const searchInput = this.querySelector('#searchInput');
-        if (searchInput) searchInput.addEventListener('input', () => this.updateGrid());
+        if (searchInput) searchInput.addEventListener('input', () => {
+            this.currentPage = 1;
+            this.updateGrid();
+        });
 
         const categoryFilter = this.querySelector('#categoryFilter');
-        if (categoryFilter) categoryFilter.addEventListener('change', () => this.updateGrid());
+        if (categoryFilter) categoryFilter.addEventListener('change', () => {
+            this.currentPage = 1;
+            this.updateGrid();
+        });
     }
 
     updateCategories() {
@@ -69,6 +85,7 @@ export class RecipeList extends HTMLElement {
     updateGrid() {
         const grid = this.querySelector('#grid');
         const emptyState = this.querySelector('#emptyState');
+        const pagination = this.querySelector('#pagination');
         if (!grid || !emptyState) return;
 
         const searchInput = this.querySelector('#searchInput');
@@ -84,17 +101,39 @@ export class RecipeList extends HTMLElement {
         });
         console.log('recipe-list.updateGrid: total', store.getRecipes().length, 'filtered', filtered.length);
 
+        const pageCount = Math.ceil(filtered.length / this.pageSize);
+        this.currentPage = Math.min(Math.max(this.currentPage, 1), Math.max(pageCount, 1));
+        const start = (this.currentPage - 1) * this.pageSize;
+        const visibleRecipes = filtered.slice(start, start + this.pageSize);
+
         grid.innerHTML = '';
         if (filtered.length === 0) {
             emptyState.classList.remove('hidden');
         } else {
             emptyState.classList.add('hidden');
-            filtered.forEach(recipe => {
+            visibleRecipes.forEach(recipe => {
                 const card = document.createElement('recipe-card');
                 grid.appendChild(card);
                 // On passe la recette APRÈS l'avoir ajouté au DOM pour déclencher le render
                 card.recipe = recipe;
             });
+        }
+
+        if (pagination) {
+            pagination.innerHTML = '';
+            for (let page = 1; page <= pageCount; page++) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = page;
+                button.className = `px-3 py-1 rounded border text-sm ${page === this.currentPage ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}`;
+                button.setAttribute('aria-label', `Page ${page}`);
+                button.setAttribute('aria-current', page === this.currentPage ? 'page' : 'false');
+                button.addEventListener('click', () => {
+                    this.currentPage = page;
+                    this.updateGrid();
+                });
+                pagination.appendChild(button);
+            }
         }
     }
 }

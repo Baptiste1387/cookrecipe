@@ -68,9 +68,9 @@ Exemple représentatif (voir `back/src/services/recipe.service.js` pour la valid
 Validation et règles (implémentées côté serveur dans `recipe.service._formatAndValidate`):
 - `title` requis et non vide.
 - `default_servings` entier >= 1 (par défaut 4).
-- `quantity` peut être null; l'UI accepte les fractions (ex. "1/2") mais le backend s'attend à un nombre (le frontend convertit avant envoi).
+- `quantity` peut être null; l'UI et le backend acceptent les fractions (ex. "1/2") et les convertissent en nombre.
 - `section_name` par défaut 'Ingrédients' si vide.
-- `display_order` et `step_number` doivent être séquentiels ; lorsqu'absents, le backend/Frontend peut auto-assigner `idx+1`.
+- `display_order` et `step_number` doivent être séquentiels ; lorsqu'absents, le backend auto-assigne `idx+1` et rejette une valeur non séquentielle.
 
 5) Backend — détails techniques
 - Entrée du serveur: `back/server.js` importe `back/src/app.js` et écoute par défaut `PORT=8000`.
@@ -92,9 +92,9 @@ Validation et règles (implémentées côté serveur dans `recipe.service._forma
   - `saveRecipe(payload, id?)` — POST ou PUT selon présence d'un `id`
   - `deleteRecipe(id)` — DELETE
 - Fonctionnalités front implémentées:
-  - Liste paginée/filtrée (search input, category filter)
+  - Liste paginée par 9 éléments et filtrée (search input, category filter)
   - Détail: calcul dynamique des quantités par convive (règle de trois), boutons [+]/[-], bouton Réinitialiser
-  - Création / modification via modal qui poste vers l'API
+  - Création / modification via modal qui poste vers l'API, avec titre, description, catégorie, tags, image, durées, ingrédients et étapes
 
 7) Contrats d'affichage et formatage
 - Format des quantités: entiers sans décimales ; décimaux arrondis au centième et séparateur décimal à la virgule côté UI (implementation: `front/js/utils.js`).

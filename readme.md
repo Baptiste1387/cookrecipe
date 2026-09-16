@@ -71,6 +71,7 @@ Uploads d'images
 - `POST /api/uploads` — téléversement d'une image via `multipart/form-data` (champ `image`).
   - Réponse: `{ image_path: "/uploads/<filename>" }`.
   - Types autorisés: `jpeg`, `png`, `webp`. Taille maximale: 5MB. Images redimensionnées côté serveur (max width 1200px).
+  - Le dossier `back/uploads/` est créé automatiquement lors du premier téléversement.
 
 Bonnes pratiques et notes rapides
 - `default_servings` doit être >= 1.
